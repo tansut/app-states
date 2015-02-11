@@ -1,0 +1,22 @@
+<link rel="import" href="view-registry.html">
+
+<script>
+  (function() {
+
+    var Element = Object.create(HTMLElement.prototype);
+
+    Element.createdCallback = function() {
+      this.cache = document.createElement('view-registry').getCache('place-holder:id');
+      this.cache.set(this.id, this);
+    };
+
+    Element.detachedCallback = function() {
+      this.cache.del(this.id);
+    };
+
+    document.registerElement('place-holder', {
+      prototype: Element
+    });
+
+  })();
+</script>

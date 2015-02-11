@@ -1,0 +1,195 @@
+<polymer-element name="app-state" attributes="header url forceReload regex model" hidden>
+  <template>
+    <states-helper id="helper"></states-helper>
+  </template>
+  <script>
+    (function() {
+
+      function viewsOfState(viewList, parentList, map) {
+        var result = [];
+
+        parentList.forEach(function(state) {
+          viewList.forEach(function(viewItems) {
+            viewItems.forEach(function(viewItem) {
+              if (viewItem.parentNode === state)
+                result.push(map ? map(viewItem) : viewItem);
+            });
+          });
+        });
+
+        return result;
+      }
+
+      function unloadStatesAndGetHierarchy(targetState, stateHierarchy) {
+
+        stateHierarchy = stateHierarchy || [];
+
+        var unloadSiblingStates = function(state) {
+          var next = state.nextElementSibling;
+          while (next) {
+            if (next.tagName == 'APP-STATE' && next.loaded)
+              next.unLoad();
+            next = next.nextElementSibling;
+          }
+
+          var previous = state.previousElementSibling;
+          while (previous) {
+            if (previous.tagName == 'APP-STATE' && previous.loaded)
+              previous.unLoad();
+            previous = previous.previousElementSibling;
+          }
+        };
+
+        var node = targetState.parentNode;
+
+        stateHierarchy.splice(0, 0, targetState);
+
+        while (node && node.tagName === 'APP-STATE') {
+          stateHierarchy.splice(0, 0, node);
+          unloadSiblingStates(node);
+          node = node.parentNode;
+        }
+
+        unloadSiblingStates(targetState);
+
+        var children = targetState.querySelectorAll('app-state');
+
+        [].map.call(children, function(childState) {
+          if (childState && childState.tagName == 'APP-STATE' && childState.loaded)
+            childState.unLoad();
+        });
+      }
+
+      function loadState(hierarchy, contentPresenters, loadedPresenters) {
+
+        var visitState = function(state, presenters, childPresenters) {
+          var directChildren = presenters.map(function(view) {
+            return view.target;
+          });
+
+          var childrenOfChildren = childPresenters.map(function(view) {
+            return view.target;
+          });
+
+          var stateWasLoaded = state.loaded;
+
+          for (var i = 0; i < directChildren.length; i++) {
+            var presenter = presenters[i];
+            if (childrenOfChildren.indexOf(directChildren[i]) < 0) {
+              if (stateWasLoaded) {
+                if (typeof(state.forceReload) != 'undefined') {
+                  state.unLoad();
+                  stateWasLoaded = false;
+                }
+                if (!presenter.instance)
+                  presenter.loadContent(state.getModel());
+                else {
+                  presenter.changeModel(state.getModel());
+                }
+              } else {
+                presenter.loadContent(state.getModel());
+              }
+            }
+          }
+
+          if (!stateWasLoaded) {
+            state.loaded = true;
+            console.log('State loaded:' + state.id);
+          }
+        };
+
+
+        loadedPresenters = loadedPresenters || [];
+
+        for (var i = 0; i < hierarchy.length; i++) {
+          var state = hierarchy[i];
+          var presenters = viewsOfState(contentPresenters, [state]);
+          var childPresenters = viewsOfState(contentPresenters, hierarchy.slice(i + 1));
+          visitState.call(this, state, presenters, childPresenters);
+        }
+      }
+
+      Polymer({
+
+        get parentState() {
+          var node = this.parentNode;
+          while(node) {
+            if (node.tagName == "APP-STATE")
+              return node;
+            node = node.parentNode;
+          }
+        },
+
+        getAppStates: function() {
+          var node = this.parentNode;
+          while (node) {
+            if (node.tagName == 'STATE-MANAGER')
+              return node;
+            node = node.parentNode;
+          }
+        },
+
+        created: function() {
+          this.stateViewCache = document.createElement('view-registry').getCache('virtual-view:target');
+        },
+
+        ready: function() {
+          this.appStates = this.getAppStates();
+          if (!this.appStates)
+            this.appStates = document.querySelector('body /deep/ state-manager');
+        },
+
+        getModel: function() {
+          var url = this.appStates.parseUrl();
+          var urlParams = this.$.helper.routeArguments(this.url, url.path, url.search, this.regex);
+
+          var model = this.model, node = this.parentNode;
+
+          while(!model && node && (node.tagName == 'APP-STATE' || node.tagName == 'STATE-MANAGER')) {
+            model = node.model;
+            node = node.parentNode;
+          }
+
+          if (model && model !== this.model) {
+            var instance = Object.create(model);
+            model = instance;
+          }
+
+          return {
+            model: model,
+            urlParams: urlParams,
+            state: this
+          };
+        },
+
+        load: function() {
+          if (this.hasAttribute('redirect')) {
+            this.appStates.go(this.getAttribute('redirect'), {replace: true});
+            return;
+          }
+          var hierarchy = [];
+          unloadStatesAndGetHierarchy(this, hierarchy);
+          loadState.call(this, hierarchy, this.stateViewCache.itemsArray());
+        },
+
+        unLoad: function() {
+          var state = this;
+          var node = this.children[0];
+          while (node) {
+            if (node.tagName == 'APP-STATE' && node.loaded)
+              node.unLoad();
+            node = node.nextElementSibling;
+          }
+          var allStateViewItems = this.stateViewCache.itemsArray(),
+            stateViews = viewsOfState(allStateViewItems, [state], function(view) {
+              view.clearContent();
+              return view;
+            });
+
+          delete state.loaded;
+          console.log('State unloaded: ' + state.id);
+        }
+      });
+    })();
+  </script>
+</polymer-element>

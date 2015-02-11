@@ -1,0 +1,216 @@
+<link rel="import" href="view-registry.html">
+<link rel="import" href="place-holder.html">
+<link rel="import" href="virtual-view.html">
+<link rel="import" href="states-helper.html">
+<link rel="import" href="app-state.html">
+
+<polymer-element name="state-manager" hidden attributes="trailingSlash mode typecast init model">
+
+  <template>
+    <states-helper id="helper"></states-helper>
+  </template>
+
+  <script>
+    (function() {
+
+      var isIE = 'ActiveXObject' in window;
+      var previousUrl = {};
+
+      function createStateTree(appState, url) {
+        var urlVal = appState.url;
+        if (typeof urlVal == 'undefined') {
+          appState.url = url;
+          urlVal = url;
+        }
+
+        var node = appState.children[0];
+        while (node) {
+          if (node.tagName == 'APP-STATE')
+            createStateTree(node, urlVal + node.id + '/');
+          node = node.nextElementSibling;
+        }
+      }
+
+      Polymer({
+
+        matchState: function(url) {
+          if (typeof url === 'string')
+            url = this.$.helper.parseUrl(url, this.mode);
+          var stateFound, states = this.querySelectorAll('app-state');
+          for (var i = 0; i < states.length; i++) {
+            var state = states[i];
+            if (this.$.helper.testRoute(state.url, url.path, this.trailingSlash, state.regex)) {
+              stateFound = state;
+              break;
+            }
+          }
+
+          var eventDetail = {
+            match: stateFound
+          };
+
+          this.$.helper.fireEvent('state-match', eventDetail, this);
+          return eventDetail.match;
+        },
+
+        loadState: function(state) {
+          var eventDetail = {
+            from: this.currentState,
+            to: state
+          };
+
+          if (!this.$.helper.fireEvent('state-changing', eventDetail, this)) {
+            return;
+          }
+
+          state.load();
+          this.oldState = this.currentState;
+          this.currentState = state;
+
+          var detail = {
+            oldState: this.oldState,
+            currentState: state
+          };
+
+          this.$.helper.fireEvent('state-changed', detail, this);
+          this.$.helper.fireEvent('app-state-changed', detail, document);
+        },
+
+
+        go: function(url, options) {
+          if (this.mode !== 'pushstate') {
+            // mode == auto or hash
+            url = '#' + url;
+          }
+          if (options && options.replace === true) {
+            window.history.replaceState(null, null, url);
+          } else {
+            window.history.pushState(null, null, url);
+          }
+
+          // dispatch a popstate event
+          try {
+            var popstateEvent = new PopStateEvent('popstate', {
+              bubbles: false,
+              cancelable: false,
+              state: {}
+            });
+
+            if ('dispatchEvent_' in window) {
+              // FireFox with polyfill
+              window.dispatchEvent_(popstateEvent);
+            } else {
+              // normal
+              window.dispatchEvent(popstateEvent);
+            }
+          } catch (error) {
+            // Internet Exploder
+            var fallbackEvent = document.createEvent('CustomEvent');
+            fallbackEvent.initCustomEvent('popstate', false, false, {
+              state: {}
+            });
+            window.dispatchEvent(fallbackEvent);
+          }
+        },
+
+
+
+        parseUrl: function(url, mode) {
+          url = url || window.location.href;
+          mode = mode || this.mode;
+          return this.$.helper.parseUrl(url, mode);
+        },
+
+
+        urlChangeHandler: function() {
+          var url = this.parseUrl();
+
+          if (url.hash !== previousUrl.hash && url.path === previousUrl.path && url.search === previousUrl.search && url.isHashPath === previousUrl.isHashPath) {
+            this.scrollToHash(url.hash);
+            return;
+          }
+
+          var matchState = this.matchState(url);
+          if (matchState && typeof matchState.forceReload != 'undefined') {
+          } else if (previousUrl.isHashPath === url.isHashPath &&
+            previousUrl.hash === url.hash &&
+            previousUrl.path === url.path &&
+            previousUrl.search === url.search)
+            return;
+
+          previousUrl = url;
+
+          var eventDetail = {
+            url: url
+          };
+
+          if (!this.$.helper.fireEvent('url-change', eventDetail, this)) {
+            return;
+          }
+
+          var state = this.matchState(url);
+          if (state)
+            this.loadState(state);
+        },
+
+
+        scrollToHash: function(hash) {
+          if (!hash) return;
+
+          setTimeout(function() {
+            var hashElement = document.querySelector('html /deep/ ' + hash) || document.querySelector('html /deep/ [name="' + hash.substring(1) + '"]');
+            if (hashElement && hashElement.scrollIntoView) {
+              hashElement.scrollIntoView(true);
+            }
+          }, 0);
+        },
+
+
+        init: function() {
+
+          if (this.isInited) {
+            return;
+          }
+
+          this.isInited = true;
+
+          // mode="auto|hash|pushstate"
+          this.mode = this.mode || 'auto';
+
+          this.trailingSlash = this.trailingSlash || 'strict';
+
+          // typecast="auto|string"
+          this.typecast = this.typecast || 'auto';
+
+          window.addEventListener('popstate', this.urlChangeHandler.bind(this), false);
+          if (isIE) {
+            window.addEventListener('hashchange', this.router.urlChangeHandler.bind(this), false);
+          }
+
+          this.urlChangeHandler();
+
+          this.$.helper.fireEvent('states-inited', {}, this);
+        },
+
+        domReady: function() {
+          if (this.getAttribute('init') !== 'manual')
+            this.init();
+        },
+
+        ready: function() {
+          var root = this.root = this.querySelector('app-state:first-child');
+          if (root)
+            createStateTree.call(this, root, '/');
+        },
+
+        detached: function() {
+          window.removeEventListener('popstate', this.stateChangeHandler, false);
+          if (isIE) {
+            window.removeEventListener('hashchange', this.stateChangeHandler, false);
+          }
+        },
+      });
+    })();
+  </script>
+
+</polymer-element>
