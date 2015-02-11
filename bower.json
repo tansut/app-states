@@ -1,6 +1,6 @@
 {
   "name": "App States",
-  "version": "1.0.0",
+  "version": "0.5.4",
   "description": "Advanced router/state manager for Polymer",
   "main": "state-manager.html",
   "keywords": [
@@ -17,7 +17,6 @@
     "webcomponentsjs": "~0.5.4"
   },
   "license": "MIT",
-  "private": true,
   "ignore": [
     "**/.*",
     "node_modules",
