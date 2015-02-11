@@ -1,4 +1,4 @@
-<polymer-element name="virtual-view" hidden attributes="target el">
+<polymer-element name="virtual-view" hidden attributes="target el discardAttr">
   <template>
     <states-helper id="helper"></states-helper>
   </template>
@@ -22,6 +22,17 @@
           if (!stateviews)
             this.cache.set(this.target, [this]);
           else stateviews.push(this);
+
+          var discardAttr = ['ID', 'TARGET', 'HIDDEN', 'EL', 'DISCARDATTR'];
+
+          if (this.hasAttribute('discardAttr')) {
+            var attr = this.getAttribute('discardAttr').split(' ');
+            attr.forEach(function(item) {
+              discardAttr.push(item.toUpperCase());
+            });
+          }
+
+          this.discardAttr = discardAttr;
         },
 
         detached: function() {
@@ -34,12 +45,12 @@
 
         changeModel: function(model) {
           // Ideally we should just set new model but it doesn't work as expected.
-          var targetModel = this.templateUsed ? this.instance.templateInstance.model: this.instance;
-            for (var property in model) {
-              if (model.hasOwnProperty(property)) {
-                targetModel[property] = model[property];
-              }
+          var targetModel = this.templateUsed ? this.instance.templateInstance.model : this.instance;
+          for (var property in model) {
+            if (model.hasOwnProperty(property)) {
+              targetModel[property] = model[property];
             }
+          }
         },
 
         clearContent: function() {
@@ -50,12 +61,27 @@
             console.log('virtual-view:Clear: Cannot locate target ' + this.target);
           } else {
             if (holder) {
-              this.$.helper.clearContent(holder);
+              holder.clearContent();
             } else
               document.body.removeChild(this.instance);
             delete this.instance;
             delete this.templateUsed;
           }
+        },
+
+        loadIntoHolder: function(holder, instance) {
+          var nodes = [],
+            values = [];
+
+          var attrList = {};
+          for (var att, i = 0, atts = this.attributes, n = atts.length; i < n; i++) {
+            att = atts[i];
+            if (this.discardAttr.indexOf(att.nodeName.toUpperCase()) < 0) {
+              attrList[att.nodeName] = att.nodeValue;
+            }
+          }
+
+          holder.loadInto(attrList, instance);
         },
 
         loadInto: function(holder, model) {
@@ -67,7 +93,7 @@
               if (self != presenter && presenter.instance && presenter.target != self.virtualHolder)
                 presenter.clearContent();
             });
-            this.$.helper.clearContent(holder);
+            holder.clearContent();
           }
 
           if (this.el) {
@@ -90,7 +116,7 @@
                   }
                 }
               }
-              holder.appendChild(this.instance);
+              this.loadIntoHolder(holder, this.instance);
             } else {
               if (this.templateUsed) {
                 var foo = document.createElement('div');

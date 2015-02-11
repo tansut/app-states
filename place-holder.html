@@ -1,22 +1,51 @@
 <link rel="import" href="view-registry.html">
+<link rel="import" href="states-helper.html">
 
-<script>
-  (function() {
+<polymer-element name="place-holder" attributes="el">
+  <script>
+    (function() {
 
-    var Element = Object.create(HTMLElement.prototype);
+      Polymer({
 
-    Element.createdCallback = function() {
-      this.cache = document.createElement('view-registry').getCache('place-holder:id');
-      this.cache.set(this.id, this);
-    };
+        created: function() {
+          this.cache = document.createElement('view-registry').getCache('place-holder:id');
+          this.cache.set(this.id, this);
+        },
 
-    Element.detachedCallback = function() {
-      this.cache.del(this.id);
-    };
+        clearContent: function() {
+          while (this.firstChild) {
+            this.removeChild(this.firstChild);
+          }
+        },
 
-    document.registerElement('place-holder', {
-      prototype: Element
-    });
+        loadInto: function(attrList, control) {
+          var removeList = [];
+          for (var att, i = 0, atts = this.attributes, n = atts.length; i < n; i++) {
+            att = atts[i];
+            if (att.nodeName.toUpperCase() != "ID") {
+              removeList.push(att.nodeName.toUpperCase());
+            }
+          }
 
-  })();
-</script>
+          for(var prop in attrList) {
+            this.setAttribute(prop, attrList[prop]);
+            var exist = removeList.indexOf(prop.toUpperCase());
+            if (exist >= 0)
+              removeList.splice(exist, 1);
+          }
+
+          removeList.forEach(function(attr) {
+            this.removeAttribute(attr);
+          }.bind(this));
+
+          this.appendChild(control);
+        },
+
+        detached: function() {
+          this.cache.del(this.id);
+        }
+      });
+    })();
+  </script>
+
+</polymer-element>
