@@ -120,7 +120,7 @@
           }
         },
 
-        getAppStates: function() {
+        getStateManager: function() {
           var node = this.parentNode;
           while (node) {
             if (node.tagName == 'STATE-MANAGER')
@@ -134,14 +134,14 @@
         },
 
         ready: function() {
-          this.appStates = this.getAppStates();
-          if (!this.appStates)
-            this.appStates = document.querySelector('body /deep/ state-manager');
+          this.stateManager = this.getStateManager();
+          if (!this.stateManager)
+            this.stateManager = document.querySelector('body /deep/ state-manager');
         },
 
         getModel: function() {
-          var url = this.appStates.parseUrl();
-          var urlParams = this.$.helper.routeArguments(this.url, url.path, url.search, this.regex);
+          var url = this.stateManager.parseUrl();
+          var urlParams = this.$.helper.routeArguments(this.url, url.path, url.search, this.regex, this.stateManager.typecast === 'auto');
 
           var model = this.model, node = this.parentNode;
 
@@ -164,7 +164,7 @@
 
         load: function() {
           if (this.hasAttribute('redirect')) {
-            this.appStates.go(this.getAttribute('redirect'), {replace: true});
+            this.stateManager.go(this.getAttribute('redirect'), {replace: true});
             return;
           }
           var hierarchy = [];
