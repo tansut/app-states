@@ -300,6 +300,7 @@ Full-Width Styles
   font-size: 42px;
   font-weight: 700;
   /* text-shadow: #111 0px 0px 10px; */
+  text-shadow: none;
 }
 
 #project_tagline {
@@ -308,6 +309,7 @@ Full-Width Styles
   font-weight: 300;
   background: none;
   /* text-shadow: #111 0px 0px 10px; */
+  text-shadow: none;
 }
 
 #downloads {
