@@ -1,4 +1,4 @@
-<polymer-element name="app-state" attributes="header url forceReload regex model" hidden>
+<polymer-element name="app-state" attributes="header url forceReload regex model urlPostfix" hidden>
   <template>
     <states-helper id="helper"></states-helper>
   </template>
@@ -183,6 +183,10 @@
           var hierarchy = [];
           unloadStatesAndGetHierarchy(this, hierarchy);
           loadState.call(this, hierarchy, this.stateViewCache.itemsArray());
+        },
+
+        buildUrl: function(params) {
+          return this.$.helper.buildUrl(this.url, params, this.stateManager.mode);
         },
 
         unLoad: function() {

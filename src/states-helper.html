@@ -45,6 +45,34 @@
       return node.dispatchEvent(event);
     };
 
+    Element.buildUrl = function(urlTemplate, params, mode) {
+      var prefix = '', retVal;
+      if (mode != 'pushstate' && urlTemplate[0] != '#')
+          prefix = '';
+
+      retVal = prefix + urlTemplate;
+      if (params) {
+        var variables = retVal.match(/:[a-zA-Z0-9%_]+/g) || [];
+        var usedVars = [];
+        variables.forEach(function(vari) {
+          var key = vari.slice(1);
+          if (typeof params[key] != 'undefined') {
+            retVal = retVal.replace(vari, encodeURIComponent(params[key]));
+            usedVars.push(key);
+          }
+        });
+
+        for(var prop in params) {
+          if (usedVars.indexOf(prop) < 0) {
+             if (retVal.indexOf('?') < 0)
+               retVal+= '?' + encodeURIComponent(prop) + '=' + encodeURIComponent(params[prop]);
+              else retVal+= '&' + encodeURIComponent(prop) + '=' + encodeURIComponent(params[prop]);
+          }
+        }
+      }
+      return retVal;
+    };
+
     Element.parseUrl = function(location, mode) {
       var url = {
         isHashPath: mode === 'hash'
@@ -155,8 +183,8 @@
     // example routeSegments ['', 'user', ':userId', '**']
     // example urlSegments ['', 'user', '123', 'bio']
     Element.segmentsMatch = function(routeSegments, routeIndex, urlSegments, urlIndex, pathVariables) {
-      var routeSegment = routeSegments[routeIndex] || "";
-      var urlSegment = urlSegments[urlIndex] || "";
+      var routeSegment = routeSegments[routeIndex] || '';
+      var urlSegment = urlSegments[urlIndex] || '';
 
       // if we're at the last route segment and it is a globstar, it will match the rest of the url
       if (routeSegment === '**' && routeIndex === routeSegments.length - 1) {

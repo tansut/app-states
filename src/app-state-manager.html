@@ -14,7 +14,9 @@
       function createStateTree(appState, url) {
         var urlVal = appState.url;
         if (typeof urlVal == 'undefined') {
-          appState.url = url;
+          if (appState.urlPostfix)
+            appState.url = appState.parentState.url + appState.urlPostfix + '/';
+          else appState.url = url;
           urlVal = url;
         }
 
@@ -48,7 +50,17 @@
           return eventDetail.match;
         },
 
-        loadState: function(state) {
+        getStateById: function(stateId) {
+            return this.querySelector('#' + stateId);
+        },
+
+        gotoState: function(state) {
+          if (typeof state === 'string') {
+            var stateFound = this.getStateById(state);
+            if (!stateFound) throw Error('unable to locate state:' + state);
+            state = stateFound;
+          }
+
           var eventDetail = {
             from: this.currentState,
             to: state
@@ -108,14 +120,15 @@
           }
         },
 
-
-
         parseUrl: function(url, mode) {
           url = url || window.location.href;
           mode = mode || this.mode;
           return this.$.helper.parseUrl(url, mode);
         },
 
+        created: function() {
+          window.appStateManager = window.appStateManager || this;
+        },
 
         urlChangeHandler: function() {
           var url = this.parseUrl();
@@ -145,7 +158,7 @@
 
           var state = this.matchState(url);
           if (state)
-            this.loadState(state);
+            this.gotoState(state);
         },
 
 
