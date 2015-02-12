@@ -1,0 +1,53 @@
+<link rel="import" href="view-registry.html">
+<link rel="import" href="states-helper.html">
+
+<polymer-element name="place-holder" attributes="el">
+  <script>
+    (function() {
+
+      Polymer({
+
+        created: function() {
+          if (!this.hasAttribute('id'))
+            throw Error('place-holder should vahe a unique id');
+          this.cache = document.createElement('view-registry').getCache('place-holder:id');
+          this.cache.set('#' + this.id, this);
+        },
+
+        clearContent: function() {
+          while (this.firstChild) {
+            this.removeChild(this.firstChild);
+          }
+        },
+
+        loadInto: function(attrList, control) {
+          var removeList = [];
+          for (var att, i = 0, atts = this.attributes, n = atts.length; i < n; i++) {
+            att = atts[i];
+            if (att.nodeName.toUpperCase() != "ID") {
+              removeList.push(att.nodeName.toUpperCase());
+            }
+          }
+
+          for(var prop in attrList) {
+            this.setAttribute(prop, attrList[prop]);
+            var exist = removeList.indexOf(prop.toUpperCase());
+            if (exist >= 0)
+              removeList.splice(exist, 1);
+          }
+
+          removeList.forEach(function(attr) {
+            this.removeAttribute(attr);
+          }.bind(this));
+
+          this.appendChild(control);
+        },
+
+        detached: function() {
+          this.cache.del('#' + this.id);
+        }
+      });
+    })();
+  </script>
+
+</polymer-element>

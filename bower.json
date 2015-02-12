@@ -1,6 +1,6 @@
 {
   "name": "App States",
-  "version": "0.5.4",
+  "version": "0.5.5",
   "description": "Advanced router/state manager for Polymer",
   "main": "state-manager.html",
   "keywords": [
@@ -23,6 +23,9 @@
     "bower_components",
     "lib",
     "test",
-    "tests"
+    "tests",
+    "tmp",
+    "gulpfile.js",
+    "package.json"
   ]
 }
