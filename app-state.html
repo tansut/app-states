@@ -94,7 +94,7 @@
 
           if (!stateWasLoaded) {
             state.loaded = true;
-            console.log('State loaded:' + state.id);
+            console.log('State loaded:' + (state.id || state.header || 'anonymous'));
           }
         };
 
@@ -134,6 +134,19 @@
         },
 
         ready: function() {
+          if (this.hasAttribute('childStates')) {
+            var el = this.getAttribute('childStates');
+            if (typeof el != 'undefined') {
+                var content = document.createElement(el);
+                var states = this.$.helper.directChildren(content.shadowRoot, 'app-state');
+                states.forEach(function(state) {
+                  this.appendChild(state);
+                }.bind(this));
+            }
+          }
+        },
+
+        attached: function() {
           this.stateManager = this.getStateManager();
           if (!this.stateManager)
             this.stateManager = document.querySelector('body /deep/ state-manager');
@@ -187,7 +200,7 @@
             });
 
           delete state.loaded;
-          console.log('State unloaded: ' + state.id);
+          console.log('State unloaded: ' + (state.id || state.header || 'anonymous'));
         }
       });
     })();

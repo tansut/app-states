@@ -77,7 +77,7 @@
           for (var att, i = 0, atts = this.attributes, n = atts.length; i < n; i++) {
             att = atts[i];
             if (this.discardAttr.indexOf(att.nodeName.toUpperCase()) < 0) {
-              attrList[att.nodeName] = att.nodeValue;
+              attrList[att.nodeName] = att.value || att.nodeValue;
             }
           }
 

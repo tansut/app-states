@@ -8,8 +8,10 @@
       Polymer({
 
         created: function() {
+          if (!this.hasAttribute('id'))
+            throw Error('place-holder should vahe a unique id');
           this.cache = document.createElement('view-registry').getCache('place-holder:id');
-          this.cache.set(this.id, this);
+          this.cache.set('#' + this.id, this);
         },
 
         clearContent: function() {
@@ -42,7 +44,7 @@
         },
 
         detached: function() {
-          this.cache.del(this.id);
+          this.cache.del('#' + this.id);
         }
       });
     })();
