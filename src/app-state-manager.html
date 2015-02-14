@@ -1,10 +1,6 @@
+<script src="AppStates.js"></script>
 
 <polymer-element name="app-state-manager" hidden attributes="trailingSlash mode typecast init model">
-
-  <template>
-    <states-helper id="helper"></states-helper>
-  </template>
-
   <script>
     (function() {
 
@@ -32,11 +28,11 @@
 
         matchState: function(url) {
           if (typeof url === 'string')
-            url = this.$.helper.parseUrl(url, this.mode);
+            url = window.AppStates.util.parseUrl(url, this.mode);
           var stateFound, states = this.querySelectorAll('app-state');
           for (var i = 0; i < states.length; i++) {
             var state = states[i];
-            if (this.$.helper.testRoute(state.url, url.path, this.trailingSlash, state.regex)) {
+            if (window.AppStates.util.testRoute(state.url, url.path, this.trailingSlash, state.regex)) {
               stateFound = state;
               break;
             }
@@ -46,7 +42,7 @@
             match: stateFound
           };
 
-          this.$.helper.fireEvent('state-match', eventDetail, this);
+          window.AppStates.util.fireEvent('state-match', eventDetail, this);
           return eventDetail.match;
         },
 
@@ -66,7 +62,7 @@
             to: state
           };
 
-          if (!this.$.helper.fireEvent('state-changing', eventDetail, this)) {
+          if (!window.AppStates.util.fireEvent('state-changing', eventDetail, this)) {
             return;
           }
 
@@ -79,8 +75,8 @@
             currentState: state
           };
 
-          this.$.helper.fireEvent('state-changed', detail, this);
-          this.$.helper.fireEvent('app-state-changed', detail, document);
+          window.AppStates.util.fireEvent('state-changed', detail, this);
+          window.AppStates.util.fireEvent('app-state-changed', detail, document);
         },
 
 
@@ -123,11 +119,11 @@
         parseUrl: function(url, mode) {
           url = url || window.location.href;
           mode = mode || this.mode;
-          return this.$.helper.parseUrl(url, mode);
+          return window.AppStates.util.parseUrl(url, mode);
         },
 
         created: function() {
-          window.appStateManager = window.appStateManager || this;
+          window.AppStates.manager = this;
         },
 
         urlChangeHandler: function() {
@@ -152,7 +148,7 @@
             url: url
           };
 
-          if (!this.$.helper.fireEvent('url-change', eventDetail, this)) {
+          if (!window.AppStates.util.fireEvent('url-change', eventDetail, this)) {
             return;
           }
 
@@ -197,7 +193,7 @@
 
           this.urlChangeHandler();
 
-          this.$.helper.fireEvent('states-inited', {}, this);
+          window.AppStates.util.fireEvent('states-inited', {}, this);
         },
 
         domReady: function() {

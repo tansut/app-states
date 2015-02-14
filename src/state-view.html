@@ -1,4 +1,4 @@
-<polymer-element name="state-view" extends="template" attributes="target">
+<polymer-element name="state-view" extends="template" attributes="target bindModel bindAs bindModelAs">
   <script>
     (function() {
       Polymer({
@@ -50,8 +50,32 @@
           delete this.instance;
         },
 
+        makeSyntax: function(model) {
+          var events = Object.create(Polymer.api.declaration.events);
+          var self = this;
+          var controller = model;
+          events.findController = function() {
+            return controller;
+          };
+
+          var syntax = new PolymerExpressions();
+          var prepareBinding = syntax.prepareBinding;
+          syntax.prepareBinding = function(pathString, name, node) {
+            return events.prepareEventBinding(pathString, name, node) ||
+                   prepareBinding.call(syntax, pathString, name, node);
+          };
+          return syntax;
+        },
+
 
         loadInto: function(holder, model) {
+
+
+
+          if (this.bindModel) {
+            var proto = Object.create(model);
+            model = AppStates.util.createStateModel(proto, null, this.bindModel, this.bindAs, this.bindModelAs);
+          }
 
           var instances = this.cache.get(this.target);
           instances.forEach(function(presenter) {
@@ -62,7 +86,7 @@
           if (holder.content)
             holder.remove();
 
-          var instance = this.createInstance(model);
+          var instance = this.createInstance(model, this.makeSyntax());
 
           this.instance = instance;
           holder.place(instance);
