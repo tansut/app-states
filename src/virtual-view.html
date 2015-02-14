@@ -8,6 +8,14 @@
 
         virtualHolder: '__$virtual$',
 
+        ready: function() {
+          var template = this.firstElementChild;
+          if (!template) {
+            template = document.createElement('template');
+            this.appendChild(template);
+          }
+        },
+
         created: function() {
           this.holderCache = document.createElement('view-registry').getCache('place-holder:id');
           this.cache = document.createElement('view-registry').getCache('virtual-view:target');
@@ -61,7 +69,7 @@
             console.log('virtual-view:Clear: Cannot locate target ' + this.target);
           } else {
             if (holder) {
-              holder.clearContent();
+              holder.remove();
             } else
               document.body.removeChild(this.instance);
             delete this.instance;
@@ -69,20 +77,6 @@
           }
         },
 
-        loadIntoHolder: function(holder, instance) {
-          var nodes = [],
-            values = [];
-
-          var attrList = {};
-          for (var att, i = 0, atts = this.attributes, n = atts.length; i < n; i++) {
-            att = atts[i];
-            if (this.discardAttr.indexOf(att.nodeName.toUpperCase()) < 0) {
-              attrList[att.nodeName] = att.value || att.nodeValue;
-            }
-          }
-
-          holder.loadInto(attrList, instance);
-        },
 
         loadInto: function(holder, model) {
           var instance, self = this;
@@ -93,13 +87,22 @@
               if (self != presenter && presenter.instance && presenter.target != self.virtualHolder)
                 presenter.clearContent();
             });
-            holder.clearContent();
+            if (holder.content)
+              holder.remove();
           }
 
-          if (this.el) {
+          var template = this.firstElementChild;
+          if (!template) {
+            template = document.createElement('template');
+            this.appendChild(template);
+            var elInstance = document.createElement(this.el);
+            template.appendChild(elInstance);
+          }
+
+          if (!template) {
             instance = document.createElement(this.el);
           } else {
-            var template = this.firstElementChild;
+            template = this.firstElementChild;
             if (template && template.tagName == 'TEMPLATE') {
               instance = template.createInstance(model);
               this.templateUsed = true;
@@ -116,7 +119,8 @@
                   }
                 }
               }
-              this.loadIntoHolder(holder, this.instance);
+              holder.place(instance);
+
             } else {
               if (this.templateUsed) {
                 var foo = document.createElement('div');

@@ -1,53 +1,97 @@
 <link rel="import" href="view-registry.html">
 <link rel="import" href="states-helper.html">
 
-<polymer-element name="place-holder" attributes="el">
+<polymer-element name="place-holder">
+
   <script>
     (function() {
+
+      function insertAfter(newNode, referenceNode) {
+        referenceNode.parentNode.insertBefore(newNode, referenceNode.nextSibling);
+      }
+
+      function insertBefore(newNode, referenceNode) {
+        referenceNode.parentNode.insertBefore(newNode, referenceNode);
+      }
+
+      function Holder(id, comment) {
+          this.id = id;
+          this.comment = comment;
+      }
+
+      Holder.prototype.place = function(content) {
+        insertAfter(content, this.comment);
+        this.content = content;
+      };
+
+      Holder.prototype.remove = function() {
+        var template = this.content.templateInstance;
+        var node = template.firstNode;
+        if (node) {
+          if (template.firstNode == template.lastNode)
+            this.comment.parentNode.removeChild(node);
+          else {
+            while (node && node != template.lastNode) {
+              var saveNode = node;
+              node = node.nextSibling;
+              this.comment.parentNode.removeChild(saveNode);
+            }
+            this.comment.parentNode.removeChild(template.lastNode);
+          }
+        }
+        delete this.content;
+      };
+
+
 
       Polymer({
 
         created: function() {
+
+        },
+
+        attached: function() {
           if (!this.hasAttribute('id'))
             throw Error('place-holder should vahe a unique id');
           this.cache = document.createElement('view-registry').getCache('place-holder:id');
-          this.cache.set('#' + this.id, this);
-        },
-
-        clearContent: function() {
-          while (this.firstChild) {
-            this.removeChild(this.firstChild);
-          }
-        },
-
-        loadInto: function(attrList, control) {
-          var removeList = [];
-          for (var att, i = 0, atts = this.attributes, n = atts.length; i < n; i++) {
-            att = atts[i];
-            if (att.nodeName.toUpperCase() != "ID") {
-              removeList.push(att.nodeName.toUpperCase());
-            }
-          }
-
-          for(var prop in attrList) {
-            this.setAttribute(prop, attrList[prop]);
-            var exist = removeList.indexOf(prop.toUpperCase());
-            if (exist >= 0)
-              removeList.splice(exist, 1);
-          }
-
-          removeList.forEach(function(attr) {
-            this.removeAttribute(attr);
-          }.bind(this));
-
-          this.appendChild(control);
+          var comment = document.createComment('state-place-holder:' + this.id);
+          var holder = new Holder(this.id, comment);
+          comment.holder = holder;
+          this.cache.set('#' + this.id, holder);
+          insertBefore(comment, this);
+          this.parentNode.removeChild(this);
         },
 
         detached: function() {
-          this.cache.del('#' + this.id);
+          //this.cache.del('#' + this.id);
+          //debugger;
+        },
+
+        place: function(content) {
+          insertAfter(content, this);
+          this.content = content;
+        },
+
+        remove: function() {
+          var template = this.content.templateInstance;
+          var node = template.firstNode;
+          if (node) {
+            if (template.firstNode == template.lastNode)
+              this.parentNode.removeChild(node);
+            else {
+              while (node && node != template.lastNode) {
+                var saveNode = node;
+                node = node.nextSibling;
+                this.parentNode.removeChild(saveNode);
+              }
+              this.parentNode.removeChild(template.lastNode);
+            }
+          }
+          delete this.content;
         }
+
       });
+
     })();
   </script>
-
 </polymer-element>
