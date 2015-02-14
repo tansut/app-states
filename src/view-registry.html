@@ -11,8 +11,8 @@
     };
 
     Cache.prototype.set = function(key, value) {
-      // if (this.get(key))
-      //   throw Error("Already have an id :" + key);
+       if (this.get(key))
+         throw Error("Already have an id :" + key);
       this.internalCache[key] = value;
     };
 

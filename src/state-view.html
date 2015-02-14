@@ -1,0 +1,85 @@
+<polymer-element name="state-view" extends="template" attributes="target">
+  <script>
+    (function() {
+      Polymer({
+
+        getHolder: function() {
+          var holder = this.holderCache.get(this.target);
+          if (!holder)
+            throw Error('state-view: Cannot locate target:' + this.target);
+
+          return holder;
+        },
+
+        attached: function() {
+          this.holderCache = document.createElement('view-registry').getCache('place-holder:id');
+          this.cache = document.createElement('view-registry').getCache('state-view:target');
+
+
+          var stateviews = this.cache.get(this.target);
+          if (!stateviews)
+            this.cache.set(this.target, [this]);
+          else stateviews.push(this);
+        },
+
+        detached: function() {
+          delete this.instance;
+          var stateviews = this.cache.get(this.target);
+          if (stateviews && stateviews.length)
+            if (stateviews.indexOf(this) >= 0)
+              stateviews.splice(stateviews.indexOf(this), 1);
+        },
+
+        changeModel: function(model) {
+          // Ideally we should just set new model but it doesn't work as expected.
+          var targetModel = this.instance.templateInstance.model;
+          for (var property in model) {
+            if (model.hasOwnProperty(property)) {
+              targetModel[property] = model[property];
+            }
+          }
+        },
+
+        clearContent: function() {
+
+          if (!this.instance)
+            return;
+
+          var holder = this.getHolder();
+          holder.remove();
+          delete this.instance;
+        },
+
+
+        loadInto: function(holder, model) {
+
+          var instances = this.cache.get(this.target);
+          instances.forEach(function(presenter) {
+            if (this != presenter && presenter.instance && presenter.target != this.virtualHolder)
+              presenter.clearContent();
+          }.bind(this));
+
+          if (holder.content)
+            holder.remove();
+
+          var instance = this.createInstance(model);
+
+          this.instance = instance;
+          holder.place(instance);
+        },
+
+        loadContent: function(model) {
+
+          if (this.instance) {
+            throw Error('Virtual view already loaded. Clear first.');
+          }
+          var holder = this.getHolder();
+
+          this.loadInto(holder, model);
+        }
+      });
+
+    })();
+  </script>
+
+</polymer-element>

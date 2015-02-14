@@ -15,8 +15,8 @@
       }
 
       function Holder(id, comment) {
-          this.id = id;
-          this.comment = comment;
+        this.id = id;
+        this.comment = comment;
       }
 
       Holder.prototype.place = function(content) {
@@ -42,34 +42,71 @@
         delete this.content;
       };
 
+      var observeDOM = (function() {
+        var MutationObserver = window.MutationObserver || window.WebKitMutationObserver,
+          eventListenerSupported = window.addEventListener;
+
+        return function(obj, callback) {
+          if (MutationObserver) {
+            // define a new observer
+            var obs = new MutationObserver(function(mutations, observer) {
+              if (mutations[0].addedNodes.length || mutations[0].removedNodes.length)
+                callback();
+            });
+            // have the observer observe foo for changes in children
+            obs.observe(obj, {
+              childList: true,
+              subtree: true
+            });
+          } else if (eventListenerSupported) {
+            obj.addEventListener('DOMNodeInserted', callback, false);
+            obj.addEventListener('DOMNodeRemoved', callback, false);
+          }
+        };
+      })();
+
+      // observeDOM(comment, function() {
+      //   console.log('dom changed');
+      // });
+
 
 
       Polymer({
 
         created: function() {
+          if (!this.hasAttribute('id'))
+            throw Error('place-holder should vahe a unique id');
+
+          this.cache = document.createElement('view-registry').getCache('place-holder:id');
+
+          if (this.getAttribute('renderAs') == 'comment' ) {
+            var comment = document.createComment('place-holder:' + this.id);
+            var holder = new Holder(this.id, comment);
+            comment.holder = holder;
+            this.cache.set('#' + this.id, holder);
+            insertBefore(comment, this);
+            this.parentNode.removeChild(this);
+          } else {
+            this.cache.set('#' + this.id, this);
+          }
 
         },
 
         attached: function() {
-          if (!this.hasAttribute('id'))
-            throw Error('place-holder should vahe a unique id');
-          this.cache = document.createElement('view-registry').getCache('place-holder:id');
-          var comment = document.createComment('state-place-holder:' + this.id);
-          var holder = new Holder(this.id, comment);
-          comment.holder = holder;
-          this.cache.set('#' + this.id, holder);
-          insertBefore(comment, this);
-          this.parentNode.removeChild(this);
+
         },
 
         detached: function() {
-          //this.cache.del('#' + this.id);
-          //debugger;
+          if (this.getAttribute('renderAs') == 'comment')
+            return;
+          this.cache.del('#' + this.id);
+
         },
 
         place: function(content) {
           insertAfter(content, this);
           this.content = content;
+          console.log('Holder content placed: ' + this.id);
         },
 
         remove: function() {
