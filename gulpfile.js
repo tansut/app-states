@@ -16,4 +16,11 @@ gulp.task('merge', function() {
     .pipe(gulp.dest('.'));
 });
 
-gulp.task('default', ['merge']);
+gulp.task('uglify', function() {
+  gulp.src(['src/core.js'])
+    .pipe(uglify())
+    .pipe(gulp.dest('.'));
+});
+
+
+gulp.task('default', ['merge', 'uglify']);
