@@ -1,8 +1,7 @@
 {
   "name": "App States",
-  "version": "0.5.5",
   "description": "Advanced router/state manager for Polymer",
-  "main": "state-manager.html",
+  "main": "app-states.html",
   "keywords": [
     "router",
     "polymer",
