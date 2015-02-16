@@ -1,4 +1,4 @@
-<polymer-element name="app-state" attributes="header url forceReload regex bindModel bindAs bindModelAs bindUrlParams bindState urlPostfix" hidden>
+<polymer-element name="app-state" attributes="header url forceReload regex bindModel bindAs bindModelAs bindUrlParams bindState urlPostfix target el" hidden>
   <script>
     (function() {
 
@@ -240,17 +240,22 @@
         getStateManager: function() {
           var node = this.parentNode;
           while (node) {
-            if (node.tagName == 'APP-STATE-MANAGER')
+            if (node.tagName == 'APP-STATES')
               return node;
             node = node.parentNode;
           }
         },
 
         created: function() {
-          this.stateViewCache = document.createElement('view-registry').getCache('state-view:target');
+          this.stateViewCache = document.createElement('view-registry').getCache('states-template:target');
         },
 
         ready: function() {
+
+          if (this.target && (this.el || this.id)) {
+            this.innerHTML = this.innerHTML + '<template is="states-template" target="' + this.target + '"><' + (this.el || this.id) + '></' + (this.el || this.id)  + '></template>';
+          }
+
           if (this.hasAttribute('childStates')) {
             var el = this.getAttribute('childStates');
             if (typeof el != 'undefined') {
@@ -266,7 +271,7 @@
         attached: function() {
           this.manager = this.getStateManager();
           if (!this.manager)
-            this.manager = document.querySelector('body /deep/ app-state-manager');
+            this.manager = document.querySelector('body /deep/ app-states');
         },
 
 

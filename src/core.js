@@ -1,6 +1,5 @@
 (function(window, document, undefined) {
   var appStates = window.AppStates = window.AppStates || {};
-  appStates.manager = undefined;
 
   var Element = Object.create(HTMLElement.prototype);
 
@@ -108,7 +107,7 @@
       isHashPath: mode === 'hash'
     };
 
-    if (typeof URL === 'function') {
+    if (typeof URLx === 'function') {
       // browsers that support `new URL()`
       var nativeUrl = new URL(location);
       url.path = nativeUrl.pathname;
