@@ -38,28 +38,24 @@
   util.createStateModel = function(prototype, shared, bindto, bindas, bindModelAs) {
     var model = Object.create(prototype);
 
-    for(var property in shared)
-    {
+    for (var property in shared) {
       model[property] = shared[property];
     }
 
     if (bindto) {
-      if (typeof bindto != 'object' || AppStates.util.isArray(bindto)) {
-        var bindAs = bindModelAs || 'model';
-        model[bindAs] = bindto;
-      } else
+      var bindAs = typeof bindModelAs !== 'undefined' ? bindModelAs : 'model';
+      if (bindAs === '' && (typeof bindto === 'object' && !window.AppStates.util.isArray(bindto)))
         for (var prop in bindto) {
           if (bindto.hasOwnProperty(prop)) {
             model[prop] = bindto[prop];
           }
-        }
+        } else model[bindAs] = bindto;
     }
-    if (bindas)
-      {
-        var tempObj = {}; tempObj[bindas] = model;
-        return tempObj;
-      }
-    else return model;
+    if (bindas) {
+      var tempObj = {};
+      tempObj[bindas] = model;
+      return tempObj;
+    } else return model;
   },
 
   util.isArray = function(obj) {
@@ -75,9 +71,10 @@
   };
 
   util.buildUrl = function(urlTemplate, params, mode) {
-    var prefix = '', retVal;
+    var prefix = '',
+      retVal;
     if (mode != 'pushstate' && urlTemplate[0] != '#')
-        prefix = '';
+      prefix = '';
 
     retVal = prefix + urlTemplate;
     if (params) {
@@ -91,11 +88,11 @@
         }
       });
 
-      for(var prop in params) {
+      for (var prop in params) {
         if (usedVars.indexOf(prop) < 0) {
-           if (retVal.indexOf('?') < 0)
-             retVal+= '?' + encodeURIComponent(prop) + '=' + encodeURIComponent(params[prop]);
-            else retVal+= '&' + encodeURIComponent(prop) + '=' + encodeURIComponent(params[prop]);
+          if (retVal.indexOf('?') < 0)
+            retVal += '?' + encodeURIComponent(prop) + '=' + encodeURIComponent(params[prop]);
+          else retVal += '&' + encodeURIComponent(prop) + '=' + encodeURIComponent(params[prop]);
         }
       }
     }
