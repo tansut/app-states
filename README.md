@@ -15,7 +15,7 @@ Features
 - Custom page sections and dynamic content loading.
 - Automatic data binding to url params and custom models.
 
-Online demo http://kalitte.github.io/polymer-router-demo/
+###  Online demo http://kalitte.github.io/polymer-router-demo/
 
 ## Getting stared
 
