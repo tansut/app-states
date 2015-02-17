@@ -32,45 +32,44 @@ app-states uses the Polymer library. Make sure you have [webcomponents.js](http:
 <html>
 
 <head>
-<script src="/bower_components/webcomponentsjs/webcomponents.js"></script>
-<link rel="import" href="/bower_components/Polymer/Polymer.html">
-<link rel="import" href="/bower_components/app-states/app-states.html">
+    <script src="/bower_components/webcomponentsjs/webcomponents.js"></script>
+    <link rel="import" href="/bower_components/Polymer/Polymer.html">
+    <link rel="import" href="/bower_components/app-states/app-states.html">
 </head>
 
 <body unresolved>
 
-<a href="#/">Go home</a>
-<a href="#/login">Go Login</a>
+    <a href="#/">Go home</a>
+    <a href="#/login">Go Login</a>
 
-<!-- Define sections you want to load dynamically -->
-<section id="nav" is="states-section"></section>
-<section id="page" is="states-section"></section>
+    <!-- Define sections you want to load dynamically -->
+    <section id="nav" is="states-section"></section>
+    <section id="page" is="states-section"></section>
 
-<!-- Define application states -->
-<app-states>
-<app-state id="home">
-<template target="#nav" is="states-template">
-<!-- When url is / load this content into #nav section -->
-Hi from nav!
-</template>
+    <!-- Define application states -->
+    <app-states>
+        <app-state id="home">
+            <template target="#nav" is="states-template">
+                <!-- When url is / load this content into #nav section -->
+                Hi from nav!
+            </template>
 
-<template target="#page" is="states-template">
-<!-- When url is / load this content into #page section -->
-Hi from home!
-</template>
+            <template target="#page" is="states-template">
+                <!-- When url is / load this content into #page section -->
+                Hi from home!
+            </template>
 
-<app-state id="login">
-<template target="#page" is="states-template">
-<!-- When url is /login load this content into #page section -->
-Hi from login!
-</template>
-<!-- Inherit #nav content from home -->
-</app-state>
-</app-state>
-</app-states>
+            <app-state id="login">
+                <template target="#page" is="states-template">
+                    <!-- When url is /login load this content into #page section -->
+                    Hi from login!
+                </template>
+                <!-- Inherit #nav content from home -->
+            </app-state>
+        </app-state>
+    </app-states>
 
 </body>
-
 </html>
 ```
 
