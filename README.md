@@ -15,7 +15,7 @@ Features
 - Custom page sections and dynamic content loading.
 - Automatic data binding to url params and custom models.
 
-Online demo http://kalitte.github.io/polymer-router-demo/
+###  Online demo http://kalitte.github.io/polymer-router-demo/
 
 ## Getting stared
 
@@ -32,39 +32,44 @@ app-states uses the Polymer library. Make sure you have [webcomponents.js](http:
 <html>
 
 <head>
-  <script src="../bower_components/webcomponentsjs/webcomponents.js"></script>
-  <link rel="import" href="../bower_components/polymer/polymer.html">
-  <link rel="import" href="../bower_components/app-states/app-states.html">
+    <script src="/bower_components/webcomponentsjs/webcomponents.js"></script>
+    <link rel="import" href="/bower_components/Polymer/Polymer.html">
+    <link rel="import" href="/bower_components/app-states/app-states.html">
 </head>
 
 <body unresolved>
 
-  <!-- Define sections you want to load dynamically -->
-  <section id="nav" is="states-section"></section>
-  <section id="page" is="states-section"></section>
+    <a href="#/">Go home</a>
+    <a href="#/login">Go Login</a>
 
-  <!-- Define application states -->
-  <app-states id="stateManager">
-    <app-state id="home" url="/">
-      <template target="#nav" is="states-template">
-        Content for home
-      </template>
+    <!-- Define sections you want to load dynamically -->
+    <section id="nav" is="states-section"></section>
+    <section id="page" is="states-section"></section>
 
-      <template target="#page" is="states-template">
-        <!-- When url is / load this content into #page -->
-      </template>
+    <!-- Define application states -->
+    <app-states>
+        <app-state id="home">
+            <template target="#nav" is="states-template">
+                <!-- When url is / load this content into #nav section -->
+                Hi from nav!
+            </template>
 
-      <app-state id="login">
-        <template target="#page" is="states-template">
-          <!-- When url is /login load this content into #page -->
-        </template>
-        <!-- Inherit #nav content from home -->
-      </app-state>
-    </app-state>
-  </app-states>
+            <template target="#page" is="states-template">
+                <!-- When url is / load this content into #page section -->
+                Hi from home!
+            </template>
+
+            <app-state id="login">
+                <template target="#page" is="states-template">
+                    <!-- When url is /login load this content into #page section -->
+                    Hi from login!
+                </template>
+                <!-- Inherit #nav content from home -->
+            </app-state>
+        </app-state>
+    </app-states>
+
 </body>
-
 </html>
-
 ```
 
