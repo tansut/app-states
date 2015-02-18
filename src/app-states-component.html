@@ -1,4 +1,4 @@
-<polymer-element name="app-states" hidden attributes="trailingSlash mode typecast init model">
+<polymer-element name="app-states" hidden attributes="trailingSlash mode typecast init model virtualPath">
   <script>
     (function() {
 
@@ -30,7 +30,14 @@
           var stateFound, states = this.querySelectorAll('app-state');
           for (var i = 0; i < states.length; i++) {
             var state = states[i];
-            if (window.AppStates.util.testRoute(state.url, url.path, this.trailingSlash, state.regex)) {
+            var pathToTest = url.path;
+            if (this.virtualPath) {
+              if (this.virtualPath.charAt(0) != '/')
+                this.virtualPath = '/' + this.virtualPath;
+              var r = new RegExp('^\\' + this.virtualPath + '*');
+              pathToTest = pathToTest.replace(r, '');
+            }
+            if (window.AppStates.util.testRoute(state.url, pathToTest, this.trailingSlash, state.regex)) {
               stateFound = state;
               break;
             }
@@ -163,9 +170,8 @@
             return;
           }
 
-          var state = this.matchState(url);
-          if (state)
-            this.gotoState(state);
+          if (matchState)
+            this.gotoState(matchState);
         },
 
 
@@ -202,9 +208,10 @@
             window.addEventListener('hashchange', this.router.urlChangeHandler.bind(this), false);
           }
 
+          window.AppStates.util.fireEvent('states-inited', {}, this);
+
           this.urlChangeHandler();
 
-          window.AppStates.util.fireEvent('states-inited', {}, this);
         },
 
         domReady: function() {
