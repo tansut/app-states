@@ -205,7 +205,7 @@
 
           window.addEventListener('popstate', this.urlChangeHandler.bind(this), false);
           if (isIE) {
-            window.addEventListener('hashchange', this.router.urlChangeHandler.bind(this), false);
+            window.addEventListener('hashchange', this.urlChangeHandler.bind(this), false);
           }
 
           window.AppStates.util.fireEvent('states-inited', {}, this);
