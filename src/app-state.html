@@ -63,16 +63,18 @@
         });
       }
 
-      function loadState(hierarchy, contentPresenters, loadedPresenters) {
+      function loadState(hierarchy, contentPresenters, loadedPresenters, options) {
+        var ensuredStates = [], loadedStates = [];
 
         var doLoadState = function(state) {
           state.loaded = true;
           state.initializeModel();
+          loadedStates.push(state);
           console.log('State ' + (state.id || state.header || 'anonymous') + ' loaded using model');
           console.log(state.model);
         };
 
-        var ensuredStates = [];
+
         var visitState = function(state, presenters, childPresenters) {
           var directChildren = presenters.map(function(view) {
             return view.target;
@@ -124,6 +126,10 @@
           var childPresenters = viewsOfState(contentPresenters, hierarchy.slice(i + 1));
           visitState.call(this, state, presenters, childPresenters);
         }
+
+        var lastState = hierarchy[hierarchy.length-1];
+
+        lastState.fire('enter-state', options);
       }
 
       Polymer({
@@ -276,16 +282,14 @@
 
 
 
-        load: function() {
+        load: function(options) {
           if (this.hasAttribute('redirect')) {
-            this.manager.go(this.getAttribute('redirect'), {
-              replace: true
-            });
+            this.manager.go(this.getAttribute('redirect'), options);
             return;
           }
           var hierarchy = [];
           unloadStatesAndGetHierarchy(this, hierarchy);
-          loadState.call(this, hierarchy, this.stateViewCache.itemsArray());
+          loadState.call(this, hierarchy, this.stateViewCache.itemsArray(), [], options);
         },
 
         buildUrl: function(params) {

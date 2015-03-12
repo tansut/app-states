@@ -55,7 +55,7 @@
             return this.querySelector('#' + stateId);
         },
 
-        gotoState: function(state) {
+        gotoState: function(state, options) {
           if (typeof state === 'string') {
             var stateFound = this.getStateById(state);
             if (!stateFound) throw Error('unable to locate state:' + state);
@@ -64,20 +64,22 @@
 
           var eventDetail = {
             from: this.currentState,
-            to: state
+            to: state,
+            options: options
           };
 
           if (!window.AppStates.util.fireEvent('state-changing', eventDetail, this)) {
             return;
           }
 
-          state.load();
+          state.load(options);
           this.oldState = this.currentState;
           this.currentState = state;
 
           var detail = {
             oldState: this.oldState,
-            currentState: state
+            currentState: state,
+            options: options
           };
 
           window.AppStates.util.fireEvent('state-changed', detail, this);
@@ -101,7 +103,7 @@
             var popstateEvent = new PopStateEvent('popstate', {
               bubbles: false,
               cancelable: false,
-              state: {}
+              state: options.state
             });
 
             if ('dispatchEvent_' in window) {
@@ -112,10 +114,10 @@
               window.dispatchEvent(popstateEvent);
             }
           } catch (error) {
-            // Internet Exploder
+            // Internet Explorer
             var fallbackEvent = document.createEvent('CustomEvent');
             fallbackEvent.initCustomEvent('popstate', false, false, {
-              state: {}
+              state: options.state
             });
             window.dispatchEvent(fallbackEvent);
           }
@@ -144,7 +146,7 @@
           }.bind(this);
         },
 
-        urlChangeHandler: function() {
+        urlChangeHandler: function(e) {
           var url = this.parseUrl();
 
           if (url.hash !== previousUrl.hash && url.path === previousUrl.path && url.search === previousUrl.search && url.isHashPath === previousUrl.isHashPath) {
@@ -171,7 +173,9 @@
           }
 
           if (matchState)
-            this.gotoState(matchState);
+            this.gotoState(matchState, {
+              state: (e ? e.state: undefined)
+            });
         },
 
 
